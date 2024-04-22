@@ -1,0 +1,52 @@
+# Ignore node_modules directory
+node_modules/
+
+# Ignore ts output directory
+dist/
+
+# Ignore log files
+*.log
+
+# Ignore environment-specific files
+.env
+
+# Ignore dependency directories
+bower_components/
+jspm_packages/
+
+# Ignore macOS system files
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.Trashes
+__MACOSX/
+# Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Ignore IDE/Editor files
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw*
+*.bak
+*.cache
+*.log
+*.dat
+*.opensdf
+*.pyc
+*.xml
+*.DS_Store
