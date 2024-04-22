@@ -12,9 +12,9 @@ const addPodcastToDb = async (req, res) => {
 
     const { podcast } = await podcastXmlParser(new URL(feedUrl));
 
-    const isPodcastPresent = await Podcast.findOne({ name: podcast.title, feedUrl });
+    const isPodcastPresent = await Podcast.findOne({ name: podcast.title });
     if (isPodcastPresent) {
-      ApiError(res, 400, "feedUrl is already present.");
+      ApiError(res, 400, "POdcast is already present as same name.");
       return;
     }
 
