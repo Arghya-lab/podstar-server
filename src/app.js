@@ -9,7 +9,6 @@ const podcastRoute = require("./routers/podcast.router");
 dotenv.config();
 
 const app = express();
-// const router = express.Router();
 app.use(cors());
 app.use(express.json());
 
