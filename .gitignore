@@ -50,3 +50,6 @@ Temporary Items
 *.pyc
 *.xml
 *.DS_Store
+
+# Local Netlify folder
+.netlify

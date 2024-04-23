@@ -2,11 +2,15 @@
   "name": "podstar-server",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "src/app.js",
   "scripts": {
-    "start": "node server-local.js",
-    "build": "netlify-lambda build express",
-    "dev": "nodemon"
+    "start": "node ./src/app",
+    "build": "npm install",
+    "dev": "nodemon ./src/app"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Arghya-lab/podstar-server.git"
   },
   "keywords": [],
   "author": "",
@@ -17,10 +21,7 @@
     "express": "^4.19.2",
     "express-validator": "^7.0.1",
     "mongoose": "^8.3.2",
-    "netlify-lambda": "^2.0.16",
-    "podcast-xml-parser": "^2.7.1",
-    "serverless-http": "^3.2.0",
-    "url": "^0.11.3"
+    "podcast-xml-parser": "^2.7.1"
   },
   "devDependencies": {
     "nodemon": "^3.1.0"
