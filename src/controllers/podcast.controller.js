@@ -1,6 +1,7 @@
 const { default: podcastXmlParser } = require("podcast-xml-parser");
 const ApiError = require("../utils/ApiError");
 const Podcast = require("../models/podcast.model");
+const removeTrailingSlash = require("../utils/removeTrailingSlash");
 
 function escapeRegex(text) {
   return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
@@ -15,9 +16,16 @@ const searchPodcasts = async (req, res) => {
     const result = await Podcast.find()
       .regex("name", regexQuery)
       .skip(resultSkip)
-      .limit(perPage);
+      .limit(perPage)
+      .select(" _id name imgUrl author feedUrl");
 
-    return res.status(200).json({ data: result });
+    const totalResult = await Podcast.find()
+      .regex("name", regexQuery)
+      .countDocuments();
+
+    return res
+      .status(200)
+      .json({ data: result, page, hasNextPage: totalResult > page * perPage });
   } catch (error) {
     return ApiError(res, 500, "Internal server error.", error);
   }
@@ -42,13 +50,17 @@ const getPodcastInfo = async (req, res) => {
 const addPodcastToDb = async (req, res) => {
   try {
     const { feedUrl } = req.body;
+    const { podcast } = await podcastXmlParser(
+      new URL(removeTrailingSlash(feedUrl))
+    );
 
-    const { podcast } = await podcastXmlParser(new URL(feedUrl));
-
-    // const isPodcastPresent = await Podcast.findOne({ name: podcast.title });
-    // if (isPodcastPresent) {
-    //   return ApiError(res, 400, "POdcast is already present as same name.");
-    // }
+    const presentPodcast = await Podcast.findOne({
+      name: podcast.title,
+      feedUrl: podcast.feedUrl,
+    }).select(" _id name imgUrl author feedUrl");
+    if (presentPodcast) {
+      return res.status(200).json(presentPodcast);
+    }
 
     const newPodcast = await Podcast.create({
       name: podcast.title,
@@ -57,10 +69,38 @@ const addPodcastToDb = async (req, res) => {
       imgUrl: podcast?.image.url || podcast.itunesImage,
     });
 
-    return res.status(200).json({ data: newPodcast });
+    return res
+      .status(200)
+      .json(
+        await Podcast.findById(newPodcast._id).select(
+          " _id name imgUrl author feedUrl"
+        )
+      );
   } catch (error) {
     return ApiError(res, 500, "Internal server error.", error);
   }
 };
 
-module.exports = { searchPodcasts, getPodcastInfo, addPodcastToDb };
+const getPodcastById = async (req, res) => {
+  try {
+    const id = req.params.id;
+    const podcast = await Podcast.findById(id).select(
+      " _id name imgUrl author feedUrl"
+    );
+
+    if (!podcast) {
+      return ApiError(res, 400, "Podcast not found.");
+    }
+
+    return res.status(200).json(podcast);
+  } catch (error) {
+    return ApiError(res, 500, "Internal server error.", error);
+  }
+};
+
+module.exports = {
+  searchPodcasts,
+  getPodcastInfo,
+  addPodcastToDb,
+  getPodcastById,
+};

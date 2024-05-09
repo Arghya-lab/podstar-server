@@ -1,4 +1,4 @@
-const { body, query } = require("express-validator");
+const { body, query, param } = require("express-validator");
 
 const searchPodcastValidate = () => [
   query("query")
@@ -80,8 +80,16 @@ const addPodcastValidate = () =>
     .isURL()
     .withMessage("feedUrl is not an url.");
 
+const getPodcastByIdValidate = () => [
+  param("id")
+    .trim()
+    .isLength({ max: 24, min: 24 })
+    .withMessage("id param length have to be 24."),
+];
+
 module.exports = {
   searchPodcastValidate,
   podcastInfoValidate,
   addPodcastValidate,
+  getPodcastByIdValidate,
 };
