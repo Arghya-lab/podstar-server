@@ -1,6 +1,7 @@
-const connectToDb = require("../db");
+import { Express } from "express";
+import connectToDb from "../db";
 
-const startServer = async (app) => {
+export default async function startServer(app: Express) {
   const port = process.env.PORT || 8000;
 
   try {
@@ -13,6 +14,4 @@ const startServer = async (app) => {
   } catch (error) {
     console.error("Error occur while connecting to server:", error);
   }
-};
-
-module.exports = startServer;
+}

@@ -1,6 +1,6 @@
-const { body, query, param } = require("express-validator");
+import { body, query, param } from "express-validator";
 
-const searchPodcastValidate = () => [
+export const searchPodcastValidate = () => [
   query("query")
     .trim()
     .notEmpty()
@@ -36,10 +36,10 @@ const searchPodcastValidate = () => [
     .toInt(),
 ];
 
-const podcastInfoValidate = () => [
+export const podcastInfoValidate = () => [
   query("feedUrl")
     .custom((_, { req }) => {
-      if (!!req.query.id && !!req.query.feedUrl) {
+      if (!!req.query?.id && !!req.query.feedUrl) {
         // If both searchParam present
         return false;
       }
@@ -56,7 +56,7 @@ const podcastInfoValidate = () => [
     .withMessage("feedUrl is not an url."),
   query("id")
     .custom((_, { req }) => {
-      if (!req.query.id && !req.query.feedUrl) {
+      if (!req.query?.id && !req.query?.feedUrl) {
         // If no relevant searchParam present
         return false;
       }
@@ -69,7 +69,7 @@ const podcastInfoValidate = () => [
     .withMessage("id have to be string."),
 ];
 
-const addPodcastValidate = () =>
+export const addPodcastValidate = () =>
   body("feedUrl")
     .trim()
     .optional()
@@ -80,16 +80,9 @@ const addPodcastValidate = () =>
     .isURL()
     .withMessage("feedUrl is not an url.");
 
-const getPodcastByIdValidate = () => [
+export const getPodcastByIdValidate = () => [
   param("id")
     .trim()
     .isLength({ max: 24, min: 24 })
     .withMessage("id param length have to be 24."),
 ];
-
-module.exports = {
-  searchPodcastValidate,
-  podcastInfoValidate,
-  addPodcastValidate,
-  getPodcastByIdValidate,
-};

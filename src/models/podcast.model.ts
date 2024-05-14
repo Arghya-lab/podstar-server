@@ -1,6 +1,7 @@
-const mongoose = require("mongoose");
+import { Schema, model } from "mongoose";
+import { IPodcast } from "../@types/models";
 
-const podcastSchema = new mongoose.Schema({
+const podcastSchema = new Schema({
   name: {
     type: String,
     required: true,
@@ -19,6 +20,6 @@ const podcastSchema = new mongoose.Schema({
   },
 });
 
-const Podcast = mongoose.model("Podcast", podcastSchema);
+const Podcast = model<IPodcast>("Podcast", podcastSchema);
 
-module.exports = Podcast;
+export default Podcast;

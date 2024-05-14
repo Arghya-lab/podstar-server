@@ -1,17 +1,17 @@
-const { Router } = require("express");
-const {
+import { Router } from "express";
+import {
   addPodcastValidate,
-  searchPodcastValidate,
-  podcastInfoValidate,
   getPodcastByIdValidate,
-} = require("../validations/podcast.validation");
+  podcastInfoValidate,
+  searchPodcastValidate,
+} from "../validations/podcast.validation";
+import validate from "../validations/validate";
 const {
   addPodcastToDb,
   searchPodcasts,
   getPodcastInfo,
   getPodcastById,
-} = require("../controllers/podcast.controller");
-const validate = require("../validations/validate");
+} = require("../controllers/podcast.controllers");
 
 const router = Router();
 
@@ -50,4 +50,4 @@ router.post("/add", addPodcastValidate(), validate, addPodcastToDb);
  */
 router.get("/:id", getPodcastByIdValidate(), validate, getPodcastById);
 
-module.exports = router;
+export default router;

@@ -1,15 +1,25 @@
-const { default: podcastXmlParser } = require("podcast-xml-parser");
-const ApiError = require("../utils/ApiError");
-const Podcast = require("../models/podcast.model");
-const removeTrailingSlash = require("../utils/removeTrailingSlash");
+import { Request, Response } from "express";
+import podcastXmlParser from "podcast-xml-parser";
+import ApiError from "../utils/ApiError";
+import Podcast from "../models/podcast.model";
+import removeTrailingSlash from "../utils/removeTrailingSlash";
+import {
+  AddPodcastRequest,
+  GetPodcastsInfoRequest,
+  SearchPodcastsRequest,
+} from "../@types/request";
 
-function escapeRegex(text) {
+function escapeRegex(text: string) {
   return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 }
 
-const searchPodcasts = async (req, res) => {
+export const searchPodcasts = async (
+  req: SearchPodcastsRequest,
+  res: Response
+) => {
   try {
     const { query, page, perPage } = req.query;
+
     const regexQuery = new RegExp(escapeRegex(query), "gi");
     const resultSkip = (page - 1) * perPage;
 
@@ -26,28 +36,36 @@ const searchPodcasts = async (req, res) => {
     return res
       .status(200)
       .json({ data: result, page, hasNextPage: totalResult > page * perPage });
-  } catch (error) {
-    return ApiError(res, 500, "Internal server error.", error);
+  } catch {
+    return ApiError(res, 500, "Internal server error.");
   }
 };
 
-const getPodcastInfo = async (req, res) => {
+export const getPodcastInfo = async (
+  req: GetPodcastsInfoRequest,
+  res: Response
+) => {
   try {
     let { id, feedUrl } = req.query;
     // from id, feedUrl only one will be present
     if (id) {
       const podcast = await Podcast.findById(id);
+      if (!podcast) return ApiError(res, 404, "Podcast not found.");
+
       feedUrl = podcast.feedUrl;
     }
-    const data = await podcastXmlParser(new URL(feedUrl), { itunes: true });
+    if (feedUrl) {
+      const data = await podcastXmlParser(new URL(feedUrl), { itunes: true });
+      return res.status(200).json(data);
+    }
 
-    return res.status(200).json(data);
-  } catch (error) {
-    return ApiError(res, 500, "Internal server error.", error);
+    return ApiError(res, 400, "No relevant query present.");
+  } catch {
+    return ApiError(res, 500, "Internal server error.");
   }
 };
 
-const addPodcastToDb = async (req, res) => {
+export const addPodcastToDb = async (req: AddPodcastRequest, res: Response) => {
   try {
     const { feedUrl } = req.body;
     const { podcast } = await podcastXmlParser(
@@ -66,7 +84,7 @@ const addPodcastToDb = async (req, res) => {
       name: podcast.title,
       author: podcast.itunesAuthor,
       feedUrl: podcast.feedUrl,
-      imgUrl: podcast?.image.url || podcast.itunesImage,
+      imgUrl: podcast.image?.url || podcast.itunesImage,
     });
 
     return res
@@ -76,12 +94,12 @@ const addPodcastToDb = async (req, res) => {
           " _id name imgUrl author feedUrl"
         )
       );
-  } catch (error) {
-    return ApiError(res, 500, "Internal server error.", error);
+  } catch {
+    return ApiError(res, 500, "Internal server error.");
   }
 };
 
-const getPodcastById = async (req, res) => {
+export const getPodcastById = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
     const podcast = await Podcast.findById(id).select(
@@ -93,14 +111,7 @@ const getPodcastById = async (req, res) => {
     }
 
     return res.status(200).json(podcast);
-  } catch (error) {
-    return ApiError(res, 500, "Internal server error.", error);
+  } catch {
+    return ApiError(res, 500, "Internal server error.");
   }
-};
-
-module.exports = {
-  searchPodcasts,
-  getPodcastInfo,
-  addPodcastToDb,
-  getPodcastById,
 };

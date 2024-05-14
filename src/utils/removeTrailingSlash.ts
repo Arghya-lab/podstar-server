@@ -1,4 +1,4 @@
-module.exports = function removeTrailingSlash(url) {
+export default function removeTrailingSlash(url: string) {
   // Check if the last character of the URL is a slash '/'
   if (url.endsWith("/")) {
     // Remove the last character (slash) using slice
@@ -6,4 +6,4 @@ module.exports = function removeTrailingSlash(url) {
   }
   // If the URL doesn't end with a slash, return it unchanged
   return url;
-};
+}
