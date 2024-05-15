@@ -15,10 +15,11 @@ dotenv.config();
 declare global {
   namespace Express {
     export interface User {
-      image: string | null;
-      isVerified: boolean;
-      userName: string;
       _id: string;
+      userName: string;
+      image: string | null;
+      email: string | null;
+      isVerified: boolean;
     }
   }
 }

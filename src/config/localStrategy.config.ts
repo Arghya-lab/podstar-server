@@ -12,13 +12,14 @@ const localStrategyConfig = new LocalStrategy(
   },
   async function (email, password, done) {
     try {
-      let user = await User.findOne({ email: email }).select(
-        "_id userName isVerified image hash"
-      );
+      let user = await User.findOne({ email: email });
+
       if (user && user.hash) {
         const match = await bcrypt.compare(password, user.hash);
         if (match) {
-          delete user.hash;
+          user = await User.findOne({ email: email }).select(
+            "_id userName isVerified image email"
+          );
           // if user is not verified tell to verify
           return done(null, user || undefined);
         } else {

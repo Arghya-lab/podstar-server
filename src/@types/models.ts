@@ -12,7 +12,7 @@ export interface IUser extends Document {
   googleId: string | null;
   image: string | null;
   email: string | null;
-  hash?: string | null;
+  hash: string | null;
   isVerified: boolean;
   verifyToken: string | null;
   verifyTokenExpiry: number | null;

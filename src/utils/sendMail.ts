@@ -22,10 +22,10 @@ export default async function sendMail({
       pass: String(process.env.MAIL_SENDER_PASSWORD!),
     },
   });
+  console.log(getMailHtml({ userName, token, type }));
 
-  encodeURIComponent;
   const mailOptions = {
-    from: '"Podstar" arghyamaity403@gmail.com', // sender address
+    from: `"Podstar" ${process.env.SENDER_EMAIL_ID}`, // sender address
     to: email, // list of receivers
     subject: type === "VERIFY" ? "Verify your email" : "Reset your password", // Subject line
     text: getMailText({ userName, token, type }), // plain text body

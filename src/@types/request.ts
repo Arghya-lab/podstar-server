@@ -52,3 +52,13 @@ export type VerifyEmailRequest = Request<
   },
   Record<string, any>
 >;
+
+export type ValidateEmailForForgotPasswordRequest = Request<
+  {},
+  any,
+  {},
+  {
+    email: string;
+  },
+  Record<string, any>
+>;

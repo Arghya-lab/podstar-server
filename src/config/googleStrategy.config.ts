@@ -12,7 +12,7 @@ const googleStrategyConfig = new GoogleStrategy(
   },
   async function (accessToken, refreshToken, profile, done) {
     let user = await User.findOne({ googleId: profile.id }).select(
-      "_id userName isVerified image"
+      "_id userName isVerified image email"
     );
     if (!user) {
       const newUser = await User.create({

@@ -39,7 +39,7 @@ export default function getMailHtml({
                           <p style="font-size:14px;padding-bottom:10px;margin:0">${
                             type === "VERIFY"
                               ? "To complete your registration, please verify your email address by clicking the button below:"
-                              : "To complete reset your password by clicking the button below:"
+                              : "Your reset password token is in below:"
                           }</p>
                         </td>
                       </tr>
@@ -53,15 +53,14 @@ export default function getMailHtml({
                                 <td align="center" valign="middle"
                                   style="border-collapse:collapse!important;word-break:break-word;border-radius:6px;padding:8px 14px"
                                   bgcolor="#4c83ee">
-                                  <a href="${process.env.CLIENT_BASE_URL!}/${
-    type === "VERIFY" ? `verify-email` : `reset-password`
-  }?token=${token}"
+                                  ${
+                                    type === "VERIFY"
+                                      ? `<a href="${process.env
+                                          .CLIENT_BASE_URL!}/verify-email?token=${token}"
                                     style="color:#fff!important;display:block;font-size:14px;font-weight:500;text-decoration:none"
-                                    target="_blank">${
-                                      type === "VERIFY"
-                                        ? "Confirm my account"
-                                        : "Reset my Password"
-                                    }</a>
+                                    target="_blank">Confirm my account</a>`
+                                      : `<p style="color:#fff!important;display:block;font-size:24px;font-weight:500;text-decoration:none>${token}</p>`
+                                  }
                                 </td>
                               </tr>
                             </tbody>
