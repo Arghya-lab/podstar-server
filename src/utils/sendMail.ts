@@ -22,7 +22,6 @@ export default async function sendMail({
       pass: String(process.env.MAIL_SENDER_PASSWORD!),
     },
   });
-  console.log(getMailHtml({ userName, token, type }));
 
   const mailOptions = {
     from: `"Podstar" ${process.env.SENDER_EMAIL_ID}`, // sender address

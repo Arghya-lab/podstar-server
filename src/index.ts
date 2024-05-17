@@ -8,6 +8,7 @@ import localStrategyConfig from "./config/localStrategy.config";
 import googleStrategyConfig from "./config/googleStrategy.config";
 import authRoute from "./routers/auth.routes";
 import podcastRoute from "./routers/podcast.routes";
+import userRoute from "./routers/user.routes";
 
 /* configs */
 dotenv.config();
@@ -48,6 +49,7 @@ app.get("/", (_, res) => {
 });
 app.use("/auth", authRoute);
 app.use("/podcast", podcastRoute);
+app.use("/user", userRoute);
 
 // start the server
 startServer(app);

@@ -1,4 +1,4 @@
-import { Request, Response, Router } from "express";
+import { Router } from "express";
 import passport from "passport";
 import {
   handleChangePassword,
@@ -20,25 +20,6 @@ import validate from "../validations/validate";
 import { verifyEmailValidate } from "../validations/email.validation";
 
 const router = Router();
-
-/**
- * Route: GET /auth/user
- * Description: To get login user data
- * Note: Send request with credentials true
- */
-router.get("/user", (req, res) => {
-  if (req.user) {
-    return res.status(200).json({
-      success: true,
-      message: "successfully got user data.",
-      user: req.user,
-    });
-  }
-  return res.status(404).json({
-    success: false,
-    message: "user not found please login.",
-  });
-});
 
 /**
  * Route: GET /auth/google

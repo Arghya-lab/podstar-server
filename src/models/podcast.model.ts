@@ -1,7 +1,7 @@
 import { Schema, model } from "mongoose";
 import { IPodcast } from "../@types/models";
 
-const podcastSchema = new Schema({
+const podcastSchema = new Schema<IPodcast>({
   name: {
     type: String,
     required: true,

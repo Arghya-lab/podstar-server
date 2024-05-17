@@ -1,17 +1,18 @@
 import { Router } from "express";
 import {
   addPodcastValidate,
-  getPodcastByIdValidate,
+  podcastByIdValidate,
   podcastInfoValidate,
   searchPodcastValidate,
 } from "../validations/podcast.validation";
 import validate from "../validations/validate";
-const {
+import {
   addPodcastToDb,
-  searchPodcasts,
-  getPodcastInfo,
   getPodcastById,
-} = require("../controllers/podcast.controllers");
+  getPodcastInfo,
+  getTrendingPodcasts,
+  searchPodcasts,
+} from "../controllers/podcast.controllers";
 
 const router = Router();
 
@@ -26,11 +27,16 @@ const router = Router();
 router.get("/", searchPodcastValidate(), validate, searchPodcasts);
 
 /**
+ * Route: GET /podcast/trending
+ * Description: Get podcast trending which is fetched from podcastIndex
+ */
+router.get("/trending", getTrendingPodcasts);
+
+/**
  * Route: GET /podcast/info
  * Description: Get detail info about podcast
  * Request Query:
  *   - id (id or feedUrl only one require): Id of the podcast store in DB
- *   - feedUrl (id or feedUrl only one require): The URL of the podcast rss feed
  */
 router.get("/info", podcastInfoValidate(), validate, getPodcastInfo);
 
@@ -45,9 +51,9 @@ router.post("/add", addPodcastValidate(), validate, addPodcastToDb);
 /**
  * Route: GET /podcast/:id
  * Description: Get podcast from db
- * Request Query:
+ * Request Param:
  *   - id (require): Id of the podcast store in DB
  */
-router.get("/:id", getPodcastByIdValidate(), validate, getPodcastById);
+router.get("/:id", podcastByIdValidate(), validate, getPodcastById);
 
 export default router;

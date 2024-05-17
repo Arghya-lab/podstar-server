@@ -2,14 +2,15 @@ import { Request } from "express";
 
 export type SearchPodcastsRequest = Request<
   {},
+  any,
   {},
-  {},
-  {
-    query: string;
-    page: number;
-    perPage: number;
-    [key: string]: any;
-  }
+  | {
+      query: string;
+      page: number;
+      perPage: number;
+    }
+  | any,
+  Record<string, any>
 >;
 
 export type GetPodcastsInfoRequest = Request<
@@ -17,10 +18,9 @@ export type GetPodcastsInfoRequest = Request<
   {},
   {},
   {
-    id?: string;
-    feedUrl?: string;
-    [key: string]: any;
-  }
+    id: string;
+  },
+  {}
 >;
 
 export type AddPodcastRequest = Request<

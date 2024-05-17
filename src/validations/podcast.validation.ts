@@ -37,36 +37,13 @@ export const searchPodcastValidate = () => [
 ];
 
 export const podcastInfoValidate = () => [
-  query("feedUrl")
-    .custom((_, { req }) => {
-      if (!!req.query?.id && !!req.query.feedUrl) {
-        // If both searchParam present
-        return false;
-      }
-      return true;
-    })
-    .withMessage("feedUrl query & id query both should not present.")
-    .optional()
-    .trim()
-    .notEmpty()
-    .withMessage("feedUrl is required.")
-    .isString()
-    .withMessage("feedUrl have to be string.")
-    .isURL()
-    .withMessage("feedUrl is not an url."),
   query("id")
-    .custom((_, { req }) => {
-      if (!req.query?.id && !req.query?.feedUrl) {
-        // If no relevant searchParam present
-        return false;
-      }
-      return true;
-    })
-    .withMessage("No relevant query present.")
     .optional()
     .trim()
     .isString()
-    .withMessage("id have to be string."),
+    .withMessage("id have to be string.")
+    .isLength({ max: 24, min: 24 })
+    .withMessage("id param length have to be 24."),
 ];
 
 export const addPodcastValidate = () =>
@@ -80,9 +57,11 @@ export const addPodcastValidate = () =>
     .isURL()
     .withMessage("feedUrl is not an url.");
 
-export const getPodcastByIdValidate = () => [
+export const podcastByIdValidate = () => [
   param("id")
     .trim()
+    .isString()
+    .withMessage("id have to be string.")
     .isLength({ max: 24, min: 24 })
     .withMessage("id param length have to be 24."),
 ];

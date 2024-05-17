@@ -1,7 +1,12 @@
 import { Schema, model } from "mongoose";
-import { IUser } from "../@types/models";
+import { IFavoriteEpisode, IUser } from "../@types/models";
 
-const userSchema = new Schema(
+const userFavoriteEpisodeSchema = new Schema<IFavoriteEpisode>({
+  PodcastId: Schema.Types.ObjectId,
+  guid: String,
+});
+
+const userSchema = new Schema<IUser>(
   {
     userName: { type: String, required: true },
     googleId: { type: String, default: null },
@@ -13,6 +18,20 @@ const userSchema = new Schema(
     verifyTokenExpiry: { type: Number, default: null },
     forgotPasswordToken: { type: String, default: null },
     forgotPasswordTokenExpiry: { type: Number, default: null },
+    subscriptions: {
+      type: [Schema.Types.ObjectId],
+      ref: "Podcast",
+      default: [],
+    },
+    favorites: {
+      type: [userFavoriteEpisodeSchema],
+      default: [],
+    },
+    settings: {
+      playbackSpeed: { type: Number, default: 1, min: 0.5, max: 4.0 },
+      rewindIntervalSec: { type: Number, default: 10, min: 5, max: 90 },
+      forwardIntervalSec: { type: Number, default: 10, min: 5, max: 90 },
+    },
   },
   { timestamps: true }
 );
