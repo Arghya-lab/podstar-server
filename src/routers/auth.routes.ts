@@ -18,6 +18,8 @@ import {
 } from "../validations/auth.validation";
 import validate from "../validations/validate";
 import { verifyEmailValidate } from "../validations/email.validation";
+import ApiError from "../utils/ApiError";
+import ApiSuccess from "../utils/ApiSuccess";
 
 const router = Router();
 
@@ -70,10 +72,7 @@ router.get("/resend-verify-email", handleResendVerifyEmail);
  * Caution: User will not use this it will automatically call by server route as redirect
  */
 router.get("/login-success", (req, res) => {
-  return res.status(200).json({
-    success: true,
-    message: "Successfully login",
-  });
+  return ApiSuccess(res, undefined, "Successfully login");
 });
 
 /**
@@ -82,10 +81,7 @@ router.get("/login-success", (req, res) => {
  * Caution: User will not use this it will automatically call by server route as redirect
  */
 router.get("/login-failed", (req, res) => {
-  return res.status(400).json({
-    success: false,
-    message: "Failed to login",
-  });
+  return ApiError(res, 400, "Failed to login");
 });
 
 /**
@@ -112,10 +108,7 @@ router.post(
 router.get("/logout", (req, res) => {
   req.logout({ keepSessionInfo: false }, (err) => {
     // if (err) {
-    //   return res.json({
-    //     success: false,
-    //     message: "Error occur during logout.",
-    //   });
+    //   return ApiError(res, 500, "Error occur during logout.");
     // }
     return res.redirect(process.env.CLIENT_BASE_URL!);
   });

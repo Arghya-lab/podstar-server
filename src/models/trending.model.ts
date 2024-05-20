@@ -3,7 +3,7 @@ import { ITrending } from "../@types/models";
 
 const trendingSchema = new Schema<ITrending>(
   {
-    podcastIds: { type: [Schema.Types.ObjectId], ref: "Podcast", default: [] },
+    podcasts: { type: [Schema.Types.ObjectId], ref: "Podcast", default: [] },
   },
   { timestamps: true }
 );

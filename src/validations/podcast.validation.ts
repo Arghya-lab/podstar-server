@@ -1,4 +1,5 @@
 import { body, query, param } from "express-validator";
+import mongoose from "mongoose";
 
 export const searchPodcastValidate = () => [
   query("query")
@@ -42,8 +43,8 @@ export const podcastInfoValidate = () => [
     .trim()
     .isString()
     .withMessage("id have to be string.")
-    .isLength({ max: 24, min: 24 })
-    .withMessage("id param length have to be 24."),
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("id param is not valid."),
 ];
 
 export const addPodcastValidate = () =>
@@ -62,6 +63,6 @@ export const podcastByIdValidate = () => [
     .trim()
     .isString()
     .withMessage("id have to be string.")
-    .isLength({ max: 24, min: 24 })
-    .withMessage("id param length have to be 24."),
+    .custom((value) => mongoose.Types.ObjectId.isValid(value))
+    .withMessage("id param is not valid."),
 ];

@@ -1,12 +1,24 @@
 import session from "express-session";
+import MongoStore from "connect-mongo";
+import mongoose from "mongoose";
 import dotenv from "dotenv";
 
 dotenv.config();
 
-const sessionConfig = session({
-  secret: process.env.COOKIE_KEY!,
-  resave: true,
-  saveUninitialized: true,
-});
+export default function createSessionConfig() {
+  if (!mongoose.connection.readyState) {
+    throw new Error("Mongoose connection is not established yet");
+  }
 
-export default sessionConfig;
+  return session({
+    secret: process.env.COOKIE_KEY!,
+    resave: false, // Forces the session to be saved back to the session store, even if the session was never modified during the request.
+    saveUninitialized: false, // Forces a session that is "uninitialized" to be saved to the store. A session is uninitialized when it is new but not modified. Choosing false is useful for implementing login sessions, reducing server storage usage
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 1, // 1 day
+    },
+    store: MongoStore.create({
+      client: mongoose.connection.getClient(),
+    }),
+  });
+}

@@ -13,6 +13,7 @@ const podcastSchema = new Schema<IPodcast>({
   feedUrl: {
     type: String,
     required: true,
+    unique: true,
   },
   imgUrl: {
     type: String,

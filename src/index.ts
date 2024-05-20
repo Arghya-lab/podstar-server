@@ -1,17 +1,9 @@
-import express from "express";
 import dotenv from "dotenv";
-import passport from "passport";
-import corsConfig from "./config/cors.config";
-import startServer from "./utils/startServer";
-import sessionConfig from "./config/session.config";
-import localStrategyConfig from "./config/localStrategy.config";
-import googleStrategyConfig from "./config/googleStrategy.config";
-import authRoute from "./routers/auth.routes";
-import podcastRoute from "./routers/podcast.routes";
-import userRoute from "./routers/user.routes";
+import initializeApp from "./app";
+import connectToDb from "./db";
 
-/* configs */
 dotenv.config();
+const port = process.env.PORT || 8000;
 
 declare global {
   namespace Express {
@@ -24,32 +16,21 @@ declare global {
     }
   }
 }
-passport.use(localStrategyConfig);
-passport.use(googleStrategyConfig);
-const app = express();
-app.use(corsConfig);
-app.use(sessionConfig);
-app.use(passport.initialize());
-app.use(passport.session());
-app.use(express.json());
 
-passport.serializeUser(function (user, done) {
-  // null is for errors
-  done(null, user);
-});
+async function startServer() {
+  try {
+    // connect to db
+    await connectToDb();
 
-passport.deserializeUser(function (user: any, done) {
-  // null is for errors
-  done(null, user);
-});
+    // create app
+    const app = initializeApp();
 
-// routes
-app.get("/", (_, res) => {
-  res.status(200).json({ message: "Welcome to Podstar server.." });
-});
-app.use("/auth", authRoute);
-app.use("/podcast", podcastRoute);
-app.use("/user", userRoute);
+    app.listen(port, () => {
+      console.log("server is running on port:", port);
+    });
+  } catch (error) {
+    console.error("Error occur while connecting to server:", error);
+  }
+}
 
-// start the server
-startServer(app);
+startServer();

@@ -57,7 +57,6 @@ export const emailForForgotPasswordValidate = () => [
     .notEmpty()
     .withMessage("email is required.")
     .custom((value) => MailChecker.isValid(value))
-    // .isEmail()
     .withMessage("email is not valid."),
 ];
 

@@ -20,7 +20,7 @@ const localStrategyConfig = new LocalStrategy(
           user = await User.findOne({ email: email }).select(
             "_id userName isVerified image email"
           );
-          // if user is not verified tell to verify
+
           return done(null, user || undefined);
         } else {
           return done("Unauthorize access denied.");

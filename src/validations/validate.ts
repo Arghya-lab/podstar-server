@@ -14,5 +14,5 @@ export default function validate(
 
   const firstError = error.array()[0];
   // 422: Unprocessable Entity
-  return ApiError(res, 422, "Invalid data receive.", firstError.msg);
+  return ApiError(res, 422, firstError.msg);
 }

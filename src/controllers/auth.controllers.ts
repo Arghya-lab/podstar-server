@@ -9,6 +9,7 @@ import {
 } from "../@types/request";
 import User from "../models/user.model";
 import sendMail from "../utils/sendMail";
+import ApiSuccess from "../utils/ApiSuccess";
 
 //*   ------------------------ Local email signup controller  ------------------------ *//
 export const handleLocalSignup = async (
@@ -41,10 +42,11 @@ export const handleLocalSignup = async (
     });
 
     // add verify email route redirect
-    return res.status(200).json({
-      success: true,
-      message: "successfully signup now verify email login with credentials.",
-    });
+    return ApiSuccess(
+      res,
+      undefined,
+      "successfully signup now verify email login with credentials."
+    );
   } catch {
     return ApiError(res, 500, "Internal server error.");
   }
@@ -69,17 +71,13 @@ export const handleVerifyEmail = async (
           verifyTokenExpiry: null,
         });
 
-        return res.status(200).json({
-          success: true,
-          isTokenExpired: false,
-          message: "Successfully verified email.",
-        });
+        return ApiSuccess(
+          res,
+          { isTokenExpired: false },
+          "Successfully verified email."
+        );
       } else {
-        return res.status(200).json({
-          success: true,
-          isTokenExpired: true,
-          message: "Token is expired.",
-        });
+        return ApiSuccess(res, { isTokenExpired: true }, "Token is expired.");
       }
     }
 
@@ -101,8 +99,11 @@ export const handleResendVerifyEmail = async (req: Request, res: Response) => {
     const verifyToken = encodeURIComponent(uuidv4());
 
     const savedUser = await User.findById(user._id);
-    if (!savedUser || !savedUser.email)
+    if (!savedUser || !savedUser.email) {
       return ApiError(res, 400, "Unauthorize access denied.");
+    }
+
+    // if user server sended previous email duration not more than 2 min then return error
 
     await User.findByIdAndUpdate(savedUser._id, {
       verifyToken,
@@ -116,10 +117,11 @@ export const handleResendVerifyEmail = async (req: Request, res: Response) => {
       type: "VERIFY",
     });
 
-    return res.status(200).json({
-      success: true,
-      message: "Successfully send email verification link.",
-    });
+    return ApiSuccess(
+      res,
+      undefined,
+      "Successfully send email verification link."
+    );
   } catch (error) {
     return ApiError(res, 500, "Internal server error.");
   }
@@ -134,8 +136,9 @@ export const handleChangePassword = async (req: Request, res: Response) => {
     if (!expressUser) return ApiError(res, 400, "Unauthorize access denied.");
 
     const user = await User.findById(expressUser._id);
-    if (!user || !user.hash)
+    if (!user || !user.hash) {
       return ApiError(res, 400, "Unauthorize access denied.");
+    }
 
     const match = await bcrypt.compare(password, user.hash);
     if (!match) return ApiError(res, 400, "Wrong password.");
@@ -145,16 +148,14 @@ export const handleChangePassword = async (req: Request, res: Response) => {
       hash,
     })
       .then(() => {
-        return res.status(200).json({
-          success: true,
-          message: "Successfully change email password.",
-        });
+        return ApiSuccess(
+          res,
+          undefined,
+          "Successfully change email password."
+        );
       })
       .catch(() => {
-        return res.status(500).json({
-          success: true,
-          message: "Error occur while changing password.",
-        });
+        return ApiError(res, 500, "Error occur while changing password.");
       });
   } catch (error) {
     return ApiError(res, 500, "Internal server error.");
@@ -170,17 +171,10 @@ export const handleValidateEmailForForgotPassword = async (
     const { email } = req.query;
     const user = await User.findOne({ email });
     if (user?.hash) {
-      return res.status(200).json({
-        success: true,
-        isEligible: true,
-        message: "Yeah you can reset password.",
-      });
+      return ApiSuccess(res, undefined, "Yeah you can reset password.");
     }
-    return res.status(200).json({
-      success: true,
-      isEligible: false,
-      message: "You are unauthorize to reset password.",
-    });
+
+    return ApiError(res, 400, "You are unauthorize to reset password.");
   } catch (error) {
     return ApiError(res, 500, "Internal server error.");
   }
@@ -212,10 +206,11 @@ export const handleSendForgotPasswordToken = async (
         type: "RESET",
       });
 
-      return res.status(200).json({
-        success: true,
-        message: "Token is send in email and it will expire in 30 min.",
-      });
+      return ApiSuccess(
+        res,
+        undefined,
+        "Token is send in email and it will expire in 30 min."
+      );
     }
 
     return ApiError(res, 400, "Unauthorize access denied.");
@@ -250,16 +245,14 @@ export const handleResetPasswordWithToken = async (
       forgotPasswordTokenExpiry: null,
     })
       .then(() => {
-        return res.status(200).json({
-          success: true,
-          message: "Password updated successfully.",
-        });
+        return ApiSuccess(res, undefined, "Password updated successfully.");
       })
       .catch(() => {
-        return res.status(500).json({
-          success: false,
-          message: "Error occur in server while updating password.",
-        });
+        return ApiError(
+          res,
+          500,
+          "Error occur in server while updating password."
+        );
       });
   } catch (error) {
     return ApiError(res, 500, "Internal server error.");

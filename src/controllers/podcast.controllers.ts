@@ -8,15 +8,16 @@ import {
   GetPodcastsInfoRequest,
   SearchPodcastsRequest,
 } from "../@types/request";
-import User from "../models/user.model";
 import { getPodcastIdxTrending, searchPodcastIdxFeed } from "../api";
 import Trending from "../models/trending.model";
 import iso8601ToSeconds from "../utils/iso8601ToSeconds";
+import ApiSuccess from "../utils/ApiSuccess";
 
 function escapeRegex(text: string) {
   return text.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, "\\$&");
 }
 
+//*   ------------------------ Controller for search podcast from podcast index if some podcast not present in our db then add those and finally send podcast as per query from db  ------------------------ *//
 export const searchPodcasts = async (
   req: SearchPodcastsRequest,
   res: Response
@@ -40,12 +41,13 @@ export const searchPodcasts = async (
     const operations = feeds.map(async (feed) => {
       let podcast = await Podcast.findOne({
         feedUrl: { $in: [feed.url, feed.originalUrl] },
-      }).select(" _id name imgUrl author feedUrl");
+      }).select("-__v");
+
       if (!podcast) {
         podcast = await Podcast.create({
           name: feed.title,
           author: feed.author,
-          feedUrl: feed.url,
+          feedUrl: removeTrailingSlash(feed.url),
           imgUrl: feed.image,
         });
       }
@@ -61,20 +63,23 @@ export const searchPodcasts = async (
       .regex("name", regexQuery)
       .skip(resultSkip)
       .limit(perPage)
-      .select(" _id name imgUrl author feedUrl");
+      .select("-__v");
 
     const totalResult = await Podcast.find()
       .regex("name", regexQuery)
       .countDocuments();
 
-    return res
-      .status(200)
-      .json({ data: result, page, hasNextPage: totalResult > page * perPage }); //add success, message
+    return ApiSuccess(
+      res,
+      { result, page, hasNextPage: totalResult > page * perPage },
+      "Successfully fetched search result."
+    );
   } catch {
     return ApiError(res, 500, "Internal server error.");
   }
 };
 
+//*   ------------------------ Controller for fetch trending from podcast index and store in db and update every 24 hours ------------------------ *//
 export const getTrendingPodcasts = async (req: Request, res: Response) => {
   try {
     const podcastIdxTrendingData = await getPodcastIdxTrending();
@@ -92,20 +97,20 @@ export const getTrendingPodcasts = async (req: Request, res: Response) => {
           podcastIdxTrendingData.since) /
           (60 * 60 * 24) >=
           1) ||
-        prevTrending.podcastIds.length === 0)
+        prevTrending.podcasts.length === 0)
     ) {
       const trendingIds: string[] = [];
 
       const trendingPodcastIdsPromise = podcastIdxTrendingData.feeds.map(
         async (feed) => {
           let podcast = await Podcast.findOne({
-            feedUrl: feed.url,
+            feedUrl: removeTrailingSlash(feed.url),
           });
           if (!podcast) {
             podcast = await Podcast.create({
               name: feed.title,
               author: feed.author,
-              feedUrl: feed.url,
+              feedUrl: removeTrailingSlash(feed.url),
               imgUrl: feed.image,
             });
           }
@@ -120,25 +125,31 @@ export const getTrendingPodcasts = async (req: Request, res: Response) => {
 
       if (prevTrending) {
         await Trending.findByIdAndUpdate(prevTrending._id, {
-          podcastIds: trendingIds,
+          podcasts: trendingIds,
         });
       } else {
         await Trending.create({
-          podcastIds: trendingIds,
+          podcasts: trendingIds,
         });
       }
     }
 
     const trendingDocument = await Trending.findOne().populate({
-      path: "podcastIds",
-      select: "_id author imgUrl name feedUrl",
+      path: "podcasts",
+      select: "-__v",
     });
-    return res.status(200).json(trendingDocument?.podcastIds || []); //add success, message
+
+    return ApiSuccess(
+      res,
+      trendingDocument?.podcasts || [],
+      "Successfully fetched trending."
+    );
   } catch {
     return ApiError(res, 500, "Internal server error.");
   }
 };
 
+//*   ------------------------ Controller for fetch detail info from podcast rss feed  ------------------------ *//
 export const getPodcastInfo = async (
   req: GetPodcastsInfoRequest,
   res: Response
@@ -152,12 +163,21 @@ export const getPodcastInfo = async (
     const data = await podcastXmlParser(new URL(podcast.feedUrl), {
       itunes: true,
     });
-    return res.status(200).json({ _id: podcast.id, ...data }); //add success, message
+
+    return ApiSuccess(
+      res,
+      {
+        _id: podcast.id,
+        ...data,
+      },
+      "Successfully fetch detail podcast data."
+    );
   } catch {
     return ApiError(res, 500, "Internal server error.");
   }
 };
 
+//*   ------------------------ If feed url present then add podcast send podcast fetch ed from db otherwise add to db and send to user  ------------------------ *//
 export const addPodcastToDb = async (req: AddPodcastRequest, res: Response) => {
   try {
     const { feedUrl } = req.body;
@@ -168,9 +188,9 @@ export const addPodcastToDb = async (req: AddPodcastRequest, res: Response) => {
     const presentPodcast = await Podcast.findOne({
       name: podcast.title,
       feedUrl: podcast.feedUrl,
-    }).select(" _id name imgUrl author feedUrl");
+    }).select("-__v");
     if (presentPodcast) {
-      return res.status(200).json(presentPodcast);
+      return ApiSuccess(res, presentPodcast);
     }
 
     const newPodcast = await Podcast.create({
@@ -180,30 +200,26 @@ export const addPodcastToDb = async (req: AddPodcastRequest, res: Response) => {
       imgUrl: podcast.image?.url || podcast.itunesImage,
     });
 
-    return res //add success, message
-      .status(200)
-      .json(
-        await Podcast.findById(newPodcast._id).select(
-          " _id name imgUrl author feedUrl"
-        )
-      );
+    return ApiSuccess(
+      res,
+      await Podcast.findById(newPodcast._id).select("-__v")
+    );
   } catch {
     return ApiError(res, 500, "Internal server error.");
   }
 };
 
+//*   ------------------------ Controller for return podcast which will be match by podcast id  ------------------------ *//
 export const getPodcastById = async (req: Request, res: Response) => {
   try {
     const id = req.params.id;
-    const podcast = await Podcast.findById(id).select(
-      " _id name imgUrl author feedUrl"
-    );
+    const podcast = await Podcast.findById(id).select("-__v");
 
     if (!podcast) {
       return ApiError(res, 400, "Podcast not found.");
     }
 
-    return res.status(200).json(podcast); //add success, message
+    return ApiSuccess(res, podcast, "Successfully got podcast.");
   } catch {
     return ApiError(res, 500, "Internal server error.");
   }
