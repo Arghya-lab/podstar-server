@@ -15,7 +15,10 @@ export default function createSessionConfig() {
     resave: false, // Forces the session to be saved back to the session store, even if the session was never modified during the request.
     saveUninitialized: false, // Forces a session that is "uninitialized" to be saved to the store. A session is uninitialized when it is new but not modified. Choosing false is useful for implementing login sessions, reducing server storage usage
     cookie: {
-      maxAge: 1000 * 60 * 60 * 24 * 1, // 1 day
+      maxAge: 1000 * 60 * 60 * 24 * 30, // 30 day
+      httpOnly: true,
+      secure: process.env.ENVIRONMENT === "development" ? undefined : true, // Ensure this is true in production
+      sameSite: process.env.ENVIRONMENT === "development" ? undefined : "none", // Required for cross-site cookies
     },
     store: MongoStore.create({
       client: mongoose.connection.getClient(),

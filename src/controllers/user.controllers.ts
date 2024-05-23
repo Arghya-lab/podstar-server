@@ -4,6 +4,7 @@ import User from "../models/user.model";
 import Podcast from "../models/podcast.model";
 import ApiSuccess from "../utils/ApiSuccess";
 import FavoriteEpisode from "../models/favoriteEpisode.model";
+import { Episode } from "podcast-xml-parser";
 
 //*   ------------------------ Controller for get login user data  ------------------------ *//
 export const getUserController = async (req: Request, res: Response) => {
@@ -207,24 +208,19 @@ export const handleFavoritePodcastEp = async (req: Request, res: Response) => {
 
     const {
       podcastId,
-      title,
-      description,
-      enclosure,
-      guid,
-      duration,
-      pubDate,
+      episode,
+    }: {
+      podcastId: string;
+      episode: Episode;
     } = req.body;
 
-    let favoriteEpisode = await FavoriteEpisode.findOne({ guid });
+    let favoriteEpisode = await FavoriteEpisode.findOne({
+      "episodeContent.guid": episode.guid,
+    });
     if (!favoriteEpisode) {
       favoriteEpisode = await FavoriteEpisode.create({
         podcast: podcastId,
-        title,
-        description,
-        enclosure,
-        guid,
-        duration,
-        pubDate,
+        episodeContent: episode,
       });
     }
 

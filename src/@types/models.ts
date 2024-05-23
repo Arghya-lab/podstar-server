@@ -1,4 +1,5 @@
 import { Document, ObjectId } from "mongoose";
+import { Episode } from "podcast-xml-parser";
 
 export interface IUserSetting {
   playbackSpeed: number;
@@ -44,10 +45,5 @@ export interface ITrending extends Document {
 
 export interface IFavoriteEpisode extends Document {
   podcast: ObjectId;
-  title: string;
-  description: String;
-  enclosure: IFavoriteEpisodeEnclosure;
-  guid: string;
-  duration: number;
-  pubDate: string;
+  episodeContent: Episode;
 }

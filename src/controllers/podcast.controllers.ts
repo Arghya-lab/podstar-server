@@ -10,7 +10,6 @@ import {
 } from "../@types/request";
 import { getPodcastIdxTrending, searchPodcastIdxFeed } from "../api";
 import Trending from "../models/trending.model";
-import iso8601ToSeconds from "../utils/iso8601ToSeconds";
 import ApiSuccess from "../utils/ApiSuccess";
 
 function escapeRegex(text: string) {
@@ -82,55 +81,52 @@ export const searchPodcasts = async (
 //*   ------------------------ Controller for fetch trending from podcast index and store in db and update every 24 hours ------------------------ *//
 export const getTrendingPodcasts = async (req: Request, res: Response) => {
   try {
-    const podcastIdxTrendingData = await getPodcastIdxTrending();
     let prevTrending = await Trending.findOne();
     if (!prevTrending) {
       prevTrending = await Trending.create({});
     }
 
     if (
-      podcastIdxTrendingData &&
-      podcastIdxTrendingData.status === "true" &&
-      (((Date.now() / 1000 - podcastIdxTrendingData.since) / (60 * 60 * 24) <=
-        1 &&
-        (iso8601ToSeconds(String(prevTrending.updatedAt)) -
-          podcastIdxTrendingData.since) /
-          (60 * 60 * 24) >=
-          1) ||
-        prevTrending.podcasts.length === 0)
+      prevTrending.podcasts.length === 0 ||
+      (Date.now() - prevTrending.updatedAt.getTime()) / (1000 * 60 * 60 * 24) >=
+        1
     ) {
-      const trendingIds: string[] = [];
+      const podcastIdxTrendingData = await getPodcastIdxTrending();
 
-      const trendingPodcastIdsPromise = podcastIdxTrendingData.feeds.map(
-        async (feed) => {
-          let podcast = await Podcast.findOne({
-            feedUrl: removeTrailingSlash(feed.url),
-          });
-          if (!podcast) {
-            podcast = await Podcast.create({
-              name: feed.title,
-              author: feed.author,
+      if (podcastIdxTrendingData && podcastIdxTrendingData.status === "true") {
+        const trendingIds: string[] = [];
+
+        const trendingPodcastIdsPromise = podcastIdxTrendingData.feeds.map(
+          async (feed) => {
+            let podcast = await Podcast.findOne({
               feedUrl: removeTrailingSlash(feed.url),
-              imgUrl: feed.image,
             });
+            if (!podcast) {
+              podcast = await Podcast.create({
+                name: feed.title,
+                author: feed.author,
+                feedUrl: removeTrailingSlash(feed.url),
+                imgUrl: feed.image,
+              });
+            }
+            return podcast._id;
           }
-          return podcast._id;
-        }
-      );
-      await Promise.allSettled(trendingPodcastIdsPromise).then((results) => {
-        results.forEach((result) => {
-          if (result.status === "fulfilled") trendingIds.push(result.value);
+        );
+        await Promise.allSettled(trendingPodcastIdsPromise).then((results) => {
+          results.forEach((result) => {
+            if (result.status === "fulfilled") trendingIds.push(result.value);
+          });
         });
-      });
 
-      if (prevTrending) {
-        await Trending.findByIdAndUpdate(prevTrending._id, {
-          podcasts: trendingIds,
-        });
-      } else {
-        await Trending.create({
-          podcasts: trendingIds,
-        });
+        if (prevTrending) {
+          await Trending.findByIdAndUpdate(prevTrending._id, {
+            podcasts: trendingIds,
+          });
+        } else {
+          await Trending.create({
+            podcasts: trendingIds,
+          });
+        }
       }
     }
 

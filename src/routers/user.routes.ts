@@ -6,8 +6,8 @@ import {
   updateRewindInterval,
   getUserSubscriptions,
   handleSubscribePodcast,
-  handleFavoritePodcastEp,
   getUserFavorites,
+  handleFavoritePodcastEp,
 } from "../controllers/user.controllers";
 import { podcastByIdValidate } from "../validations/podcast.validation";
 import validate from "../validations/validate";
@@ -95,12 +95,7 @@ router.get("/subscriptions", getUserSubscriptions);
  * Description: favorite or unfavorite podcast episode
  * Request Body:
  *  - podcastId (required): id of the podcast which is store in db
- *  - title (required): title of that episode
- *  - description (required): description of that episode
- *  - enclosure (required): enclosure of that episode ( contains streaming url and type of streaming media)
- *  - guid (required): guid of that episode
- *  - duration (required): itunes duration of that episode
- *  - pubDate (required): publication date of that episode
+ *  - episode (required): episode data of the podcast which is store in db
  * Note: Send request with credentials true
  */
 router.post(
