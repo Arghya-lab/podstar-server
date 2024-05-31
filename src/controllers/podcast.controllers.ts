@@ -8,7 +8,7 @@ import {
   GetPodcastsInfoRequest,
   SearchPodcastsRequest,
 } from "../@types/request";
-import { getPodcastIdxTrending, searchPodcastIdxFeed } from "../api";
+import { getPodcastIdxTrending } from "../api";
 import Trending from "../models/trending.model";
 import ApiSuccess from "../utils/ApiSuccess";
 
@@ -24,35 +24,35 @@ export const searchPodcasts = async (
   try {
     const { query, page, perPage } = req.query;
 
-    const podcastIdxData = await searchPodcastIdxFeed(query);
+    // const podcastIdxData = await searchPodcastIdxFeed(query);
 
-    const feeds =
-      podcastIdxData?.feeds.filter(
-        (item) =>
-          item.type === 0 &&
-          (Date.now() / 1000 - item.lastGoodHttpStatusTime) / (60 * 60 * 24) <
-            30 &&
-          /rss/i.test(item.contentType) &&
-          item.locked !== 1
-      ) || [];
+    // const feeds =
+    //   podcastIdxData?.feeds.filter(
+    //     (item) =>
+    //       item.type === 0 &&
+    //       (Date.now() / 1000 - item.lastGoodHttpStatusTime) / (60 * 60 * 24) <
+    //         30 &&
+    //       /rss/i.test(item.contentType) &&
+    //       item.locked !== 1
+    //   ) || [];
 
     //  upload data to our db
-    const operations = feeds.map(async (feed) => {
-      let podcast = await Podcast.findOne({
-        feedUrl: { $in: [feed.url, feed.originalUrl] },
-      }).select("-__v");
+    // const operations = feeds.map(async (feed) => {
+    //   let podcast = await Podcast.findOne({
+    //     feedUrl: { $in: [feed.url, feed.originalUrl] },
+    //   }).select("-__v");
 
-      if (!podcast) {
-        podcast = await Podcast.create({
-          name: feed.title,
-          author: feed.author,
-          feedUrl: removeTrailingSlash(feed.url),
-          imgUrl: feed.image,
-        });
-      }
-      return podcast;
-    });
-    await Promise.allSettled(operations);
+    //   if (!podcast) {
+    //     podcast = await Podcast.create({
+    //       name: feed.title,
+    //       author: feed.author,
+    //       feedUrl: removeTrailingSlash(feed.url),
+    //       imgUrl: feed.image,
+    //     });
+    //   }
+    //   return podcast;
+    // });
+    // await Promise.allSettled(operations);
 
     // actual search algo
     const regexQuery = new RegExp(escapeRegex(query), "gi");
@@ -88,7 +88,7 @@ export const getTrendingPodcasts = async (req: Request, res: Response) => {
 
     if (
       prevTrending.podcasts.length === 0 ||
-      (Date.now() - prevTrending.updatedAt.getTime()) / (1000 * 60 * 60 * 24) >=
+      (Date.now() - prevTrending.updatedAt.getTime()) / (1000 * 60 * 60 * 12) >=
         1
     ) {
       const podcastIdxTrendingData = await getPodcastIdxTrending();

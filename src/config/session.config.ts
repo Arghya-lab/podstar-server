@@ -5,7 +5,7 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-export default function createSessionConfig() {
+export default function createSession() {
   if (!mongoose.connection.readyState) {
     throw new Error("Mongoose connection is not established yet");
   }
@@ -16,8 +16,8 @@ export default function createSessionConfig() {
     saveUninitialized: false, // Forces a session that is "uninitialized" to be saved to the store. A session is uninitialized when it is new but not modified. Choosing false is useful for implementing login sessions, reducing server storage usage
     cookie: {
       maxAge: 1000 * 60 * 60 * 24 * 30, // 30 day
-      httpOnly: true,
-      secure: process.env.ENVIRONMENT === "development" ? undefined : true, // Ensure this is true in production
+      // httpOnly: true,
+      // secure: process.env.ENVIRONMENT === "development" ? undefined : true, // Ensure this is true in production
       sameSite: process.env.ENVIRONMENT === "development" ? undefined : "none", // Required for cross-site cookies
     },
     store: MongoStore.create({

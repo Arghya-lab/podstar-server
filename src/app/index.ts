@@ -1,9 +1,9 @@
 import express from "express";
 import passport from "passport";
+import cors from "cors";
 import localStrategyConfig from "../config/localStrategy.config";
 import googleStrategyConfig from "../config/googleStrategy.config";
-import corsConfig from "../config/cors.config";
-import createSessionConfig from "../config/session.config";
+import createSession from "../config/session.config";
 import router from "../routers";
 
 export default function initializeApp() {
@@ -11,8 +11,14 @@ export default function initializeApp() {
   passport.use(googleStrategyConfig);
 
   const app = express();
-  app.use(corsConfig);
-  app.use(createSessionConfig());
+  app.use(
+    cors({
+      origin: process.env.CLIENT_BASE_URL,
+      methods: "GET,PUT,PATCH,POST,DELETE",
+      credentials: true,
+    })
+  );
+  app.use(createSession());
   app.use(passport.initialize());
   app.use(passport.session());
   app.use(express.json());
