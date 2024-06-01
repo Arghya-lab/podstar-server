@@ -7,5 +7,6 @@ export default function setJwtToken(res: Response, _id: string) {
     httpOnly: true, // Cookie is not accessible via JavaScript
     secure: true, // Set to true if using HTTPS
     maxAge: 1000 * 60 * 60 * 24 * 30, // Cookie expiry in milliseconds
+    sameSite: "none", // to enable cross side usage
   });
 }
