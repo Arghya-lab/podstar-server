@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Request, Response, Router } from "express";
 import passport from "passport";
 import {
   handleChangePassword,
@@ -20,6 +20,8 @@ import validate from "../validations/validate";
 import { verifyEmailValidate } from "../validations/email.validation";
 import ApiError from "../utils/ApiError";
 import ApiSuccess from "../utils/ApiSuccess";
+import setJwtToken from "../utils/setjwtToken";
+import requireLocalAuth from "../middleware/requireLocalAuth";
 
 const router = Router();
 
@@ -37,9 +39,14 @@ router.get("/google", passport.authenticate("google", { scope: ["profile"] }));
 router.get(
   "/google/callback",
   passport.authenticate("google", {
-    successRedirect: `${process.env.CLIENT_BASE_URL}`,
-    // failureRedirect: "/auth/login-failed",
-  })
+    session: false,
+  }),
+  (req, res) => {
+    if (req?.user) {
+      setJwtToken(res, req.user._id);
+    }
+    res.redirect(process.env.CLIENT_BASE_URL!);
+  }
 );
 
 /**
@@ -63,8 +70,13 @@ router.get("/verify-email", verifyEmailValidate(), validate, handleVerifyEmail);
 /**
  * Route: GET /auth/resend-verify-email
  * Description: If the verification link is expired then resend verification link route for local account
+ * Note: Send request with credentials true
  */
-router.get("/resend-verify-email", handleResendVerifyEmail);
+router.get(
+  "/resend-verify-email",
+  passport.authenticate("jwt", { session: false }),
+  handleResendVerifyEmail
+);
 
 /**
  * Route: GET /auth/login-success
@@ -95,10 +107,15 @@ router.post(
   "/login",
   localLoginValidate(),
   validate,
-  passport.authenticate("local", {
-    failureRedirect: "/auth/login-failed",
-    successRedirect: "/auth/login-success",
-  })
+  requireLocalAuth,
+  (req: Request, res: Response) => {
+    if (req.user) {
+      setJwtToken(res, req.user?._id);
+      return ApiSuccess(res, undefined, "Successfully login");
+    } else {
+      return ApiError(res, 400, "Failed to login");
+    }
+  }
 );
 
 /**
@@ -106,10 +123,8 @@ router.post(
  * Description: Auth logout
  */
 router.get("/logout", (req, res) => {
-  req.logout({ keepSessionInfo: false }, (err) => {
-    // if (err) {
-    //   return ApiError(res, 500, "Error occur during logout.");
-    // }
+  req.logout({ keepSessionInfo: false }, () => {
+    res.clearCookie("x-auth-cookie");
     return res.redirect(process.env.CLIENT_BASE_URL!);
   });
 });
@@ -126,6 +141,7 @@ router.post(
   "/change-password",
   changePasswordValidate(),
   validate,
+  passport.authenticate("jwt", { session: false }),
   handleChangePassword
 );
 

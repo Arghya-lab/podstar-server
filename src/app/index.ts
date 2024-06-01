@@ -1,15 +1,13 @@
 import express from "express";
 import passport from "passport";
 import cors from "cors";
-import localStrategyConfig from "../config/localStrategy.config";
+import cookieParser from "cookie-parser";
+import jwtStrategyConfig from "../config/JwtStrategy.config";
 import googleStrategyConfig from "../config/googleStrategy.config";
-import createSession from "../config/session.config";
+import localStrategyConfig from "../config/localStrategy.config";
 import router from "../routers";
 
 export default function initializeApp() {
-  passport.use(localStrategyConfig);
-  passport.use(googleStrategyConfig);
-
   const app = express();
   app.use(
     cors({
@@ -18,10 +16,13 @@ export default function initializeApp() {
       credentials: true,
     })
   );
-  app.use(createSession());
+
   app.use(passport.initialize());
-  app.use(passport.session());
+  passport.use(jwtStrategyConfig);
+  passport.use(googleStrategyConfig);
+  passport.use(localStrategyConfig);
   app.use(express.json());
+  app.use(cookieParser());
 
   passport.serializeUser(function (user, done) {
     // null is for errors

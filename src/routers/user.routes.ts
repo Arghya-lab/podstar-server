@@ -17,6 +17,7 @@ import {
   validatePlaybackSpeed,
   validateRewindInterval,
 } from "../validations/user.validation";
+import passport from "passport";
 
 const router = Router();
 
@@ -25,7 +26,11 @@ const router = Router();
  * Description: To get login user data
  * Note: Send request with credentials true
  */
-router.get("/", getUserController);
+router.get(
+  "/",
+  passport.authenticate("jwt", { session: false }),
+  getUserController
+);
 
 /**
  * Route: PATCH /user/setting/playback-speed
@@ -38,6 +43,7 @@ router.patch(
   "/setting/playback-speed",
   validatePlaybackSpeed(),
   validate,
+  passport.authenticate("jwt", { session: false }),
   updatePlaybackSpeed
 );
 
@@ -52,6 +58,7 @@ router.patch(
   "/setting/rewind-interval",
   validateRewindInterval(),
   validate,
+  passport.authenticate("jwt", { session: false }),
   updateRewindInterval
 );
 
@@ -66,6 +73,7 @@ router.patch(
   "/setting/forward-interval",
   validateForwardInterval(),
   validate,
+  passport.authenticate("jwt", { session: false }),
   updateForwardInterval
 );
 
@@ -80,6 +88,7 @@ router.post(
   "/toggle-subscribe/:id",
   podcastByIdValidate(),
   validate,
+  passport.authenticate("jwt", { session: false }),
   handleSubscribePodcast
 );
 
@@ -88,7 +97,11 @@ router.post(
  * Description: To get login user subscriptions
  * Note: Send request with credentials true
  */
-router.get("/subscriptions", getUserSubscriptions);
+router.get(
+  "/subscriptions",
+  passport.authenticate("jwt", { session: false }),
+  getUserSubscriptions
+);
 
 /**
  * Route: POST /user/toggle-favorite
@@ -102,6 +115,7 @@ router.post(
   "/toggle-favorite",
   toggleFavoriteValidate(),
   validate,
+  passport.authenticate("jwt", { session: false }),
   handleFavoritePodcastEp
 );
 
@@ -110,6 +124,10 @@ router.post(
  * Description: To get login user favorites
  * Note: Send request with credentials true
  */
-router.get("/favorites", getUserFavorites);
+router.get(
+  "/favorites",
+  passport.authenticate("jwt", { session: false }),
+  getUserFavorites
+);
 
 export default router;

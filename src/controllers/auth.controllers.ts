@@ -10,6 +10,7 @@ import {
 import User from "../models/user.model";
 import sendMail from "../utils/sendMail";
 import ApiSuccess from "../utils/ApiSuccess";
+import setJwtToken from "../utils/setjwtToken";
 
 //*   ------------------------ Local email signup controller  ------------------------ *//
 export const handleLocalSignup = async (
@@ -25,7 +26,7 @@ export const handleLocalSignup = async (
     const hash = bcrypt.hashSync(password, 10);
     const verifyToken = encodeURIComponent(uuidv4());
 
-    await User.create({
+    const user = await User.create({
       email,
       userName,
       hash,
@@ -41,7 +42,7 @@ export const handleLocalSignup = async (
       type: "VERIFY",
     });
 
-    // add verify email route redirect
+    setJwtToken(res, user._id);
     return ApiSuccess(
       res,
       undefined,

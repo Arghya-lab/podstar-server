@@ -9,12 +9,15 @@ const googleStrategyConfig = new GoogleStrategy(
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     callbackURL: `${process.env.SERVER_URL}/auth/google/callback`,
+    proxy: true,
   },
   async function (accessToken, refreshToken, profile, done) {
-    let user = await User.findOne({ googleId: profile.id }).select(
-      "_id userName isVerified image email"
-    );
-    if (!user) {
+    try {
+      let oldUser = await User.findOne({ googleId: profile.id }).select(
+        "_id userName isVerified image email"
+      );
+      if (oldUser) return done(null, oldUser);
+
       const newUser = await User.create({
         googleId: profile.id,
         userName: profile.displayName,
@@ -23,10 +26,10 @@ const googleStrategyConfig = new GoogleStrategy(
         isVerified: true,
       });
 
-      user = await User.findById(newUser.id);
+      done(null, newUser);
+    } catch (error) {
+      done(error);
     }
-
-    done(null, user || undefined);
   }
 );
 export default googleStrategyConfig;
